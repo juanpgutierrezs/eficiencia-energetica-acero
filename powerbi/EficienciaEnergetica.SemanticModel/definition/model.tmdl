@@ -11,8 +11,11 @@ annotation __PBI_TimeIntelligenceEnabled = 0
 
 annotation PBI_QueryOrder = ["RutaDatos","Horaria","Anomalias"]
 
+annotation PBI_ProTooling = ["DevMode"]
+
 ref table Calendario
 ref table Horaria
 ref table Anomalias
 ref table 'Factor M'
 ref table 'Umbral k'
+

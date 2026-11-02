@@ -1,5 +1,5 @@
 {
-  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.4.0/schema.json",
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.14.0/schema.json",
   "name": "6a6b4eed7c554b44bf00",
   "position": {
     "x": 10,
@@ -46,7 +46,8 @@
                 }
               },
               "queryRef": "Anomalias.kWh real",
-              "nativeQueryRef": "kWh real"
+              "nativeQueryRef": "kWh real",
+              "active": true
             }
           ]
         },
