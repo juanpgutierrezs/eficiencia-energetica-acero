@@ -1,0 +1,193 @@
+table Horaria
+	lineageTag: 3d770f3a-8ff4-4648-9bc4-4cebfa7c4b69
+
+	measure 'Energía activa (kWh)' = SUM(Horaria[kWh])
+		formatString: #,0
+		displayFolder: Energía
+		lineageTag: a83bcbcd-cd03-4e27-8755-ef9ad37005ff
+
+	measure 'Energía activa (MWh)' = DIVIDE([Energía activa (kWh)], 1000)
+		formatString: #,0.0
+		displayFolder: Energía
+		lineageTag: f90d78d0-ea7c-4dfb-9436-4ce0e685f803
+
+	measure 'Energía promedio por hora (kWh)' = AVERAGE(Horaria[kWh])
+		formatString: #,0.0
+		displayFolder: Energía
+		lineageTag: 128405d1-002b-48e9-860d-dc1f52e2b646
+
+	measure 'Reactiva inductiva (kVArh)' = SUM(Horaria[kVArh_ind])
+		formatString: #,0
+		displayFolder: Energía
+		lineageTag: 43bc859f-69bc-4b2d-9a7f-275eb9d4463f
+
+	measure 'Factor de potencia' =
+			DIVIDE(
+			    [Energía activa (kWh)],
+			    SQRT([Energía activa (kWh)] ^ 2 + [Reactiva inductiva (kVArh)] ^ 2)
+			)
+		formatString: 0.00
+		displayFolder: Energía
+		lineageTag: 1ad3d691-d142-4f7a-9d1e-1d8e542f9533
+
+	measure 'Límite CREG' = 0.5
+		formatString: #,0.00
+		displayFolder: CREG
+		lineageTag: 05e69ecb-04bb-490f-a584-13ea8e6af558
+
+	measure 'Cargo D (COP/kVArh)' = 77.22
+		formatString: #,0.00
+		displayFolder: CREG
+		lineageTag: eddb8ff5-53bb-413b-9076-76c0f06f2935
+
+	measure 'Exceso reactiva (kVArh)' =
+			VAR Limite = [Límite CREG]
+			RETURN
+			    SUMX(Horaria, MAX(0, Horaria[kVArh_ind] - Limite * Horaria[kWh]))
+		formatString: #,0
+		displayFolder: CREG
+		lineageTag: 3dd16bb3-b831-4717-b46d-1b7f1e8ba812
+
+	measure 'Horas con exceso' =
+			VAR Limite = [Límite CREG]
+			RETURN
+			    COUNTROWS(FILTER(Horaria, Horaria[kVArh_ind] - Limite * Horaria[kWh] > 0)) + 0
+		formatString: #,0
+		displayFolder: CREG
+		lineageTag: d2cb9b27-2fc7-46bb-a45b-3896718d5656
+
+	measure '% horas con exceso' = DIVIDE([Horas con exceso], COUNTROWS(Horaria))
+		formatString: 0.0%
+		displayFolder: CREG
+		lineageTag: 74f05f49-379d-4e7f-949b-5246fa64bd41
+
+	measure 'Días con exceso' =
+			COUNTROWS(
+			    FILTER(VALUES(Horaria[Dia]), CALCULATE([Horas con exceso]) > 0)
+			) + 0
+		formatString: #,0
+		displayFolder: CREG
+		lineageTag: b756cd23-7102-40a8-b177-4fda8f62250a
+
+	measure 'Horas con inyección capacitiva' = COUNTROWS(FILTER(Horaria, Horaria[kVArh_cap] > Horaria[kVArh_ind])) + 0
+		formatString: #,0
+		displayFolder: CREG
+		lineageTag: c18b5ac3-b3ab-4ebf-89cb-2a267f85b4ab
+
+	measure 'Costo reactiva (COP)' = [Exceso reactiva (kVArh)] * [Cargo D (COP/kVArh)] * [Valor Factor M]
+		formatString: \$#,0
+		displayFolder: CREG
+		lineageTag: 0ae6cacf-0f32-4555-bd68-2a1010fa263b
+
+	column fecha
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 6b95be82-78bd-422e-baa4-a75814815805
+		summarizeBy: none
+		sourceColumn: fecha
+
+		annotation SummarizationSetBy = Automatic
+
+	column kWh
+		dataType: double
+		formatString: #,0.00
+		lineageTag: 918c09f7-bd05-473e-8c10-5fb86bd0f627
+		summarizeBy: sum
+		sourceColumn: kWh
+
+		annotation SummarizationSetBy = User
+
+	column kVArh_ind
+		dataType: double
+		formatString: #,0.00
+		lineageTag: b9c9bce7-4ea3-4178-87d0-752e835e71fc
+		summarizeBy: sum
+		sourceColumn: kVArh_ind
+
+		annotation SummarizationSetBy = User
+
+	column kVArh_cap
+		dataType: double
+		formatString: #,0.00
+		lineageTag: 2aaed982-6b4a-4f17-b903-1f3855c057be
+		summarizeBy: sum
+		sourceColumn: kVArh_cap
+
+		annotation SummarizationSetBy = User
+
+	column limite_kVArh
+		dataType: double
+		formatString: #,0.00
+		lineageTag: af58ea52-c1f0-4bc5-b9d8-dad1f51aa0a4
+		summarizeBy: sum
+		sourceColumn: limite_kVArh
+
+		annotation SummarizationSetBy = User
+
+	column exceso_kVArh
+		dataType: double
+		formatString: #,0.00
+		lineageTag: edb94561-80a9-4483-a759-dcadd3ece419
+		summarizeBy: sum
+		sourceColumn: exceso_kVArh
+
+		annotation SummarizationSetBy = User
+
+	column FP
+		dataType: double
+		formatString: #,0.00
+		lineageTag: c9d826d6-7dc3-4292-bc84-22de05112b27
+		summarizeBy: average
+		sourceColumn: FP
+
+		annotation SummarizationSetBy = User
+
+	column hora
+		dataType: int64
+		formatString: 0
+		lineageTag: 1f0626ec-d5cc-4715-8542-7dd791884042
+		summarizeBy: none
+		sourceColumn: hora
+
+		annotation SummarizationSetBy = Automatic
+
+	column mes
+		dataType: int64
+		formatString: 0
+		lineageTag: 3b52837d-6135-4115-bc78-3cd4fa1496fb
+		summarizeBy: none
+		sourceColumn: mes
+
+		annotation SummarizationSetBy = Automatic
+
+	column dia_semana
+		dataType: string
+		lineageTag: 3bdbba01-980b-4da7-9e34-b12f4334376b
+		summarizeBy: none
+		sourceColumn: dia_semana
+
+		annotation SummarizationSetBy = Automatic
+
+	column Dia
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 1c6650ea-b40d-42d1-a2ca-d87ae064e3ad
+		summarizeBy: none
+		sourceColumn: Dia
+
+		annotation UnderlyingDateTimeDataType = Date
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Horaria = m
+		mode: import
+		source =
+				let
+				    Origen = Csv.Document(File.Contents(RutaDatos & "energia_horaria.csv"), [Delimiter = ",", Encoding = 65001, QuoteStyle = QuoteStyle.Csv]),
+				    Encabezados = Table.PromoteHeaders(Origen, [PromoteAllScalars = true]),
+				    Columnas = Table.SelectColumns(Encabezados, {"fecha", "kWh", "kVArh_ind", "kVArh_cap", "limite_kVArh", "exceso_kVArh", "FP", "hora", "mes", "dia_semana"}),
+				    Tipos = Table.TransformColumnTypes(Columnas, {{"fecha", type datetime}, {"kWh", type number}, {"kVArh_ind", type number}, {"kVArh_cap", type number}, {"limite_kVArh", type number}, {"exceso_kVArh", type number}, {"FP", type number}, {"hora", Int64.Type}, {"mes", Int64.Type}, {"dia_semana", type text}}, "en-US"),
+				    AgregarDia = Table.AddColumn(Tipos, "Dia", each Date.From([fecha]), type date)
+				in
+				    AgregarDia
+

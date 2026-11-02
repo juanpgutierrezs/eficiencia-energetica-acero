@@ -1,0 +1,38 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.4.0/schema.json",
+  "name": "ed8bec036ac643be9866",
+  "position": {
+    "x": 10,
+    "y": 10,
+    "z": 23000,
+    "height": 110,
+    "width": 300,
+    "tabOrder": 23000
+  },
+  "visual": {
+    "visualType": "card",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Anomalias"
+                    }
+                  },
+                  "Property": "MAE (kWh)"
+                }
+              },
+              "queryRef": "Anomalias.MAE (kWh)",
+              "nativeQueryRef": "MAE (kWh)"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.4.0/schema.json",
+  "name": "bda333153df94484b47e",
+  "position": {
+    "x": 850,
+    "y": 10,
+    "z": 5000,
+    "height": 110,
+    "width": 200,
+    "tabOrder": 5000
+  },
+  "visual": {
+    "visualType": "card",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Horaria"
+                    }
+                  },
+                  "Property": "Costo reactiva (COP)"
+                }
+              },
+              "queryRef": "Horaria.Costo reactiva (COP)",
+              "nativeQueryRef": "Costo reactiva (COP)"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

@@ -1,0 +1,25 @@
+table 'Umbral k'
+	lineageTag: 8f2de9d5-4adc-4cdd-a907-5e62a574fa54
+
+	measure 'Valor Umbral k' = SELECTEDVALUE('Umbral k'[Umbral k], 3)
+		formatString: 0.0
+		lineageTag: 4badefb5-5656-4554-91ae-f669e21dfc31
+
+	column 'Umbral k'
+		dataType: double
+		formatString: 0.0
+		lineageTag: 7b7ee11a-9090-42d6-b607-0c3d7d7c24b1
+		summarizeBy: none
+		sourceColumn: [Value]
+
+		extendedProperty ParameterMetadata =
+				{
+				  "version": 0
+				}
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Umbral k' = calculated
+		mode: import
+		source = GENERATESERIES(1, 5, 0.5)
+

@@ -1,0 +1,38 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.4.0/schema.json",
+  "name": "79690d5c1a894d14b4aa",
+  "position": {
+    "x": 10,
+    "y": 10,
+    "z": 17000,
+    "height": 110,
+    "width": 300,
+    "tabOrder": 17000
+  },
+  "visual": {
+    "visualType": "card",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Anomalias"
+                    }
+                  },
+                  "Property": "Horas anómalas"
+                }
+              },
+              "queryRef": "Anomalias.Horas anómalas",
+              "nativeQueryRef": "Horas anómalas"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

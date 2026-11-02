@@ -1,0 +1,162 @@
+table Anomalias
+	lineageTag: 371beb06-ba8f-474b-8284-0b013179f5ac
+
+	measure 'kWh real' = SUM(Anomalias[kWh])
+		formatString: #,0
+		displayFolder: Modelo
+		lineageTag: 4417810e-063e-4f12-a9cf-4d521e497afa
+
+	measure 'kWh pronosticado' = SUM(Anomalias[pred_kWh])
+		formatString: #,0
+		displayFolder: Modelo
+		lineageTag: f8212635-4ff8-42cf-ac87-574be2908a82
+
+	measure 'MAE (kWh)' = AVERAGEX(Anomalias, ABS(Anomalias[residuo]))
+		formatString: #,0.0
+		displayFolder: Modelo
+		lineageTag: 3ba0c4b3-be39-460b-8656-3af516af0df0
+
+	measure 'CV(RMSE) %' =
+			DIVIDE(
+			    SQRT(AVERAGEX(Anomalias, Anomalias[residuo] ^ 2)),
+			    AVERAGE(Anomalias[kWh])
+			)
+		formatString: 0.0%
+		displayFolder: Modelo
+		lineageTag: fa46ed90-f2ac-4594-86ad-5200ac3e9849
+
+	measure 'Sesgo %' = DIVIDE(SUM(Anomalias[residuo]), SUM(Anomalias[kWh]))
+		formatString: 0.0%
+		displayFolder: Modelo
+		lineageTag: 09e985e3-8436-46a6-a443-aad9567ffca8
+
+	measure 'Umbral (kWh)' = [Valor Umbral k] * CALCULATE([MAE (kWh)], ALL(Anomalias))
+		formatString: #,0.0
+		displayFolder: Modelo
+		lineageTag: a595b159-634c-48a3-b7ce-27d453c1ee74
+
+	measure 'Horas anómalas' =
+			VAR Umbral = [Umbral (kWh)]
+			RETURN
+			    COUNTROWS(FILTER(Anomalias, ABS(Anomalias[residuo]) > Umbral)) + 0
+		formatString: #,0
+		displayFolder: Modelo
+		lineageTag: 93bd6b7a-afeb-4b7f-87ee-ceae11fb5c54
+
+	measure 'Horas consumo alto' =
+			VAR Umbral = [Umbral (kWh)]
+			RETURN
+			    COUNTROWS(FILTER(Anomalias, Anomalias[residuo] > Umbral)) + 0
+		formatString: #,0
+		displayFolder: Modelo
+		lineageTag: 0efc8f31-505d-43cf-8c54-5d131fb83d85
+
+	measure 'Horas consumo bajo' =
+			VAR Umbral = [Umbral (kWh)]
+			RETURN
+			    COUNTROWS(FILTER(Anomalias, Anomalias[residuo] < -Umbral)) + 0
+		formatString: #,0
+		displayFolder: Modelo
+		lineageTag: e03a2aac-f91a-4048-9b49-1c52daa80712
+
+	measure 'kWh sobre lo esperado' =
+			VAR Umbral = [Umbral (kWh)]
+			RETURN
+			    SUMX(FILTER(Anomalias, Anomalias[residuo] > Umbral), Anomalias[residuo]) + 0
+		formatString: #,0
+		displayFolder: Modelo
+		lineageTag: 3a872992-9f25-4c11-9479-37789dc858b2
+
+	column fecha
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: cc83c1b9-a09f-4c6f-8a26-632cb44fcec8
+		summarizeBy: none
+		sourceColumn: fecha
+
+		annotation SummarizationSetBy = Automatic
+
+	column kWh
+		dataType: double
+		formatString: #,0.00
+		lineageTag: 5933999a-c99a-47f8-b724-149d21e7ef72
+		summarizeBy: sum
+		sourceColumn: kWh
+
+		annotation SummarizationSetBy = User
+
+	column pred_kWh
+		dataType: double
+		formatString: #,0.00
+		lineageTag: 2854d826-7413-4088-acab-b5169200b6b2
+		summarizeBy: sum
+		sourceColumn: pred_kWh
+
+		annotation SummarizationSetBy = User
+
+	column residuo
+		dataType: double
+		formatString: #,0.00
+		lineageTag: afeb50ca-4068-49d9-bd75-5f67a0d0d225
+		summarizeBy: sum
+		sourceColumn: residuo
+
+		annotation SummarizationSetBy = User
+
+	column hora
+		dataType: int64
+		formatString: 0
+		lineageTag: 1870e46c-f0de-4d84-8521-56c8767f466e
+		summarizeBy: none
+		sourceColumn: hora
+
+		annotation SummarizationSetBy = Automatic
+
+	column mes
+		dataType: int64
+		formatString: 0
+		lineageTag: 6558e54c-19fe-44b0-89fb-73afa4c195ba
+		summarizeBy: none
+		sourceColumn: mes
+
+		annotation SummarizationSetBy = Automatic
+
+	column tipo_jornada
+		dataType: string
+		lineageTag: 359de86a-481c-420a-bd8a-775f78a1bcfe
+		summarizeBy: none
+		sourceColumn: tipo_jornada
+
+		annotation SummarizationSetBy = Automatic
+
+	column anomalia
+		dataType: string
+		lineageTag: 42444b5c-9d17-49ac-a79e-48d89b0ee19e
+		summarizeBy: none
+		sourceColumn: anomalia
+
+		annotation SummarizationSetBy = Automatic
+
+	column Dia
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 8e93d085-1ddb-46ba-8710-586d9e055a50
+		summarizeBy: none
+		sourceColumn: Dia
+
+		annotation UnderlyingDateTimeDataType = Date
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Anomalias = m
+		mode: import
+		source =
+				let
+				    Origen = Csv.Document(File.Contents(RutaDatos & "pronostico_anomalias.csv"), [Delimiter = ",", Encoding = 65001, QuoteStyle = QuoteStyle.Csv]),
+				    Encabezados = Table.PromoteHeaders(Origen, [PromoteAllScalars = true]),
+				    Columnas = Table.SelectColumns(Encabezados, {"fecha", "kWh", "pred_kWh", "residuo", "hora", "mes", "tipo_jornada", "anomalia"}),
+				    Tipos = Table.TransformColumnTypes(Columnas, {{"fecha", type datetime}, {"kWh", type number}, {"pred_kWh", type number}, {"residuo", type number}, {"hora", Int64.Type}, {"mes", Int64.Type}, {"tipo_jornada", type text}, {"anomalia", type text}}, "en-US"),
+				    AgregarDia = Table.AddColumn(Tipos, "Dia", each Date.From([fecha]), type date)
+				in
+				    AgregarDia
+

@@ -1,0 +1,38 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.4.0/schema.json",
+  "name": "bab0ca1049ed4d1c8991",
+  "position": {
+    "x": 640,
+    "y": 10,
+    "z": 4000,
+    "height": 110,
+    "width": 200,
+    "tabOrder": 4000
+  },
+  "visual": {
+    "visualType": "card",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Horaria"
+                    }
+                  },
+                  "Property": "Días con exceso"
+                }
+              },
+              "queryRef": "Horaria.Días con exceso",
+              "nativeQueryRef": "Días con exceso"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

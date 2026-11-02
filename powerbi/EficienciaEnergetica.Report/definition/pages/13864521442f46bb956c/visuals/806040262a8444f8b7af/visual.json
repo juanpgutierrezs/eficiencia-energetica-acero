@@ -1,0 +1,38 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.4.0/schema.json",
+  "name": "806040262a8444f8b7af",
+  "position": {
+    "x": 10,
+    "y": 10,
+    "z": 12000,
+    "height": 110,
+    "width": 300,
+    "tabOrder": 12000
+  },
+  "visual": {
+    "visualType": "card",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Horaria"
+                    }
+                  },
+                  "Property": "Horas con exceso"
+                }
+              },
+              "queryRef": "Horaria.Horas con exceso",
+              "nativeQueryRef": "Horas con exceso"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

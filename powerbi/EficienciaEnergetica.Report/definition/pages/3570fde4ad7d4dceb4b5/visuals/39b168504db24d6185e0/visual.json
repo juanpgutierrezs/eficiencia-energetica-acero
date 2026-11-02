@@ -1,0 +1,38 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.4.0/schema.json",
+  "name": "39b168504db24d6185e0",
+  "position": {
+    "x": 320,
+    "y": 10,
+    "z": 18000,
+    "height": 110,
+    "width": 300,
+    "tabOrder": 18000
+  },
+  "visual": {
+    "visualType": "card",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Anomalias"
+                    }
+                  },
+                  "Property": "kWh sobre lo esperado"
+                }
+              },
+              "queryRef": "Anomalias.kWh sobre lo esperado",
+              "nativeQueryRef": "kWh sobre lo esperado"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

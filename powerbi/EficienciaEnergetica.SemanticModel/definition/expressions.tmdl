@@ -1,0 +1,4 @@
+expression RutaDatos = "C:\Users\jpgse\Proyectos\eficiencia-energetica-acero\data\processed\" meta [IsParameterQuery = true, Type = "Text", IsParameterQueryRequired = true]
+	lineageTag: 64e74640-4e82-4337-b605-fbf92ad6330b
+
+	annotation PBI_ResultType = Text

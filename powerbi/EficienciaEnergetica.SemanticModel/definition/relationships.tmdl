@@ -1,0 +1,8 @@
+relationship 4e4904d0-4d37-442d-8857-1f4f22877c56
+	fromColumn: Horaria.Dia
+	toColumn: Calendario.Fecha
+
+relationship ad6051c3-6048-4a0d-ada9-79d667ac0635
+	fromColumn: Anomalias.Dia
+	toColumn: Calendario.Fecha
+

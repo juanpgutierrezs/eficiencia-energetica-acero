@@ -1,0 +1,18 @@
+model Model
+	culture: es-CO
+	defaultPowerBIDataSourceVersion: powerBI_V3
+	discourageImplicitMeasures
+	sourceQueryCulture: es-CO
+	dataAccessOptions
+		legacyRedirects
+		returnErrorValuesAsNull
+
+annotation __PBI_TimeIntelligenceEnabled = 0
+
+annotation PBI_QueryOrder = ["RutaDatos","Horaria","Anomalias"]
+
+ref table Calendario
+ref table Horaria
+ref table Anomalias
+ref table 'Factor M'
+ref table 'Umbral k'

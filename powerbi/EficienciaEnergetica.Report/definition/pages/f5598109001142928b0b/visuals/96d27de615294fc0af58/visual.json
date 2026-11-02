@@ -1,0 +1,38 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.4.0/schema.json",
+  "name": "96d27de615294fc0af58",
+  "position": {
+    "x": 320,
+    "y": 10,
+    "z": 24000,
+    "height": 110,
+    "width": 300,
+    "tabOrder": 24000
+  },
+  "visual": {
+    "visualType": "card",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Anomalias"
+                    }
+                  },
+                  "Property": "CV(RMSE) %"
+                }
+              },
+              "queryRef": "Anomalias.CV(RMSE) %",
+              "nativeQueryRef": "CV(RMSE) %"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

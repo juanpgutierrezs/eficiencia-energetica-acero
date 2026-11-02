@@ -1,0 +1,67 @@
+{
+  "name": "Tema Acero",
+  "dataColors": [
+    "#1F3864",
+    "#A6A6A6",
+    "#2E75B6",
+    "#8EA9DB",
+    "#C55A11",
+    "#7F7F7F",
+    "#548235",
+    "#BF9000"
+  ],
+  "foreground": "#262626",
+  "foregroundNeutralSecondary": "#595959",
+  "background": "#FFFFFF",
+  "backgroundLight": "#F2F2F2",
+  "backgroundNeutral": "#D9D9D9",
+  "tableAccent": "#1F3864",
+  "good": "#548235",
+  "neutral": "#BF9000",
+  "bad": "#C00000",
+  "textClasses": {
+    "title": {
+      "fontFace": "Segoe UI Semibold",
+      "fontSize": 12,
+      "color": "#1F3864"
+    },
+    "callout": {
+      "fontFace": "Segoe UI Semibold",
+      "fontSize": 26,
+      "color": "#1F3864"
+    },
+    "label": {
+      "fontFace": "Segoe UI",
+      "fontSize": 10,
+      "color": "#262626"
+    }
+  },
+  "visualStyles": {
+    "*": {
+      "*": {
+        "title": [
+          {
+            "fontColor": {
+              "solid": {
+                "color": "#1F3864"
+              }
+            }
+          }
+        ]
+      }
+    },
+    "card": {
+      "*": {
+        "labels": [
+          {
+            "color": {
+              "solid": {
+                "color": "#1F3864"
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+}

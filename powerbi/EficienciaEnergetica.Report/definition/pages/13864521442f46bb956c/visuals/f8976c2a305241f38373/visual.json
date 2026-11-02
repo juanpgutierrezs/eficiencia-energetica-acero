@@ -1,0 +1,38 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.4.0/schema.json",
+  "name": "f8976c2a305241f38373",
+  "position": {
+    "x": 320,
+    "y": 10,
+    "z": 13000,
+    "height": 110,
+    "width": 300,
+    "tabOrder": 13000
+  },
+  "visual": {
+    "visualType": "card",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Horaria"
+                    }
+                  },
+                  "Property": "Horas con inyección capacitiva"
+                }
+              },
+              "queryRef": "Horaria.Horas con inyección capacitiva",
+              "nativeQueryRef": "Horas con inyección capacitiva"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

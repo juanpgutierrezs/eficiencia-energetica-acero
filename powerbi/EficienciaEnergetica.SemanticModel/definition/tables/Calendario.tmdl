@@ -1,0 +1,64 @@
+table Calendario
+	dataCategory: Time
+	lineageTag: 11ad6f04-63e7-4a65-93bc-152960cbc8b6
+
+	column Fecha
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: cac9cc67-81c2-4d1c-8861-c98de18df2b4
+		summarizeBy: none
+		isKey
+		sourceColumn: [Fecha]
+
+		annotation UnderlyingDateTimeDataType = Date
+
+		annotation SummarizationSetBy = Automatic
+
+	column Mes
+		dataType: int64
+		formatString: 0
+		lineageTag: f2348b16-b302-476f-b170-2bfbf8ef0ffe
+		summarizeBy: none
+		sourceColumn: [Mes]
+
+		annotation SummarizationSetBy = Automatic
+
+	column NombreMes
+		dataType: string
+		lineageTag: 3ef414de-b768-414c-8a86-843b52406fa4
+		summarizeBy: none
+		sortByColumn: Mes
+		sourceColumn: [NombreMes]
+
+		annotation SummarizationSetBy = Automatic
+
+	column DiaSemana
+		dataType: int64
+		formatString: 0
+		lineageTag: 941ed9b3-fe58-43da-9bc5-100f1748ddca
+		summarizeBy: none
+		sourceColumn: [DiaSemana]
+
+		annotation SummarizationSetBy = Automatic
+
+	column NombreDia
+		dataType: string
+		lineageTag: 6a900df9-6df0-438d-a7ed-ade6448fe3dd
+		summarizeBy: none
+		sortByColumn: DiaSemana
+		sourceColumn: [NombreDia]
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Calendario = calculated
+		mode: import
+		source =
+				SELECTCOLUMNS(
+				    CALENDAR(DATE(2018, 1, 1), DATE(2018, 12, 31)),
+				    "Fecha", [Date],
+				    "Mes", MONTH([Date]),
+				    "NombreMes", VAR NM = FORMAT([Date], "mmmm", "es-CO") RETURN UPPER(LEFT(NM, 1)) & MID(NM, 2, 20),
+				    "DiaSemana", WEEKDAY([Date], 2),
+				    "NombreDia", VAR ND = FORMAT([Date], "dddd", "es-CO") RETURN UPPER(LEFT(ND, 1)) & MID(ND, 2, 20)
+				)
+

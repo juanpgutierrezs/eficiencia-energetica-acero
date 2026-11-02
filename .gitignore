@@ -3,3 +3,5 @@ __pycache__/
 .ipynb_checkpoints/
 ~$*
 privado/
+powerbi/**/.pbi/localSettings.json
+powerbi/**/.pbi/cache.abf

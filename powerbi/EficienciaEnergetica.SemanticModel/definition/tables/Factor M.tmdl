@@ -1,0 +1,25 @@
+table 'Factor M'
+	lineageTag: 4e52276f-0847-49dd-9522-e60647e6bc36
+
+	measure 'Valor Factor M' = SELECTEDVALUE('Factor M'[Factor M], 1)
+		formatString: 0
+		lineageTag: 546b1089-5574-442a-8e2f-ffcb05e623e8
+
+	column 'Factor M'
+		dataType: int64
+		formatString: 0
+		lineageTag: a1ceff3f-d4d9-4e68-9087-f03c48120a54
+		summarizeBy: none
+		sourceColumn: [Value]
+
+		extendedProperty ParameterMetadata =
+				{
+				  "version": 0
+				}
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Factor M' = calculated
+		mode: import
+		source = GENERATESERIES(1, 12, 1)
+
