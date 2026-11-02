@@ -1,0 +1,159 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish,es-noshorthands]{babel}
+\usepackage{lmodern}
+\usepackage[margin=2.2cm]{geometry}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{xcolor}
+\usepackage{titlesec}
+\usepackage{caption}
+\usepackage{enumitem}
+\usepackage[hidelinks]{hyperref}
+
+% Un solo color de acento, estilo sobrio
+\definecolor{acento}{RGB}{31,56,100}
+\titleformat{\section}{\large\bfseries\color{acento}}{\thesection.}{0.6em}{}
+\titleformat{\subsection}{\normalsize\bfseries\color{acento}}{\thesubsection.}{0.6em}{}
+\captionsetup{font=small,labelfont={bf,color=acento}}
+\setlist{nosep,leftmargin=1.3em}
+\setlength{\parskip}{0.45em}
+\setlength{\parindent}{0pt}
+
+% Inserta la figura si existe; si no, deja un recuadro con el nombre pendiente
+\newcommand{\figura}[3]{%
+  \begin{figure}[htbp]\centering
+  \IfFileExists{#1}{\includegraphics[width=#2\linewidth]{#1}}%
+  {\fbox{\parbox{#2\linewidth}{\centering\vspace{1.5cm}Figura pendiente: \texttt{\detokenize{#1}}\vspace{1.5cm}}}}
+  \caption{#3}\end{figure}}
+
+\begin{document}
+
+\begin{center}
+{\LARGE\bfseries\color{acento} Diagnóstico de energía reactiva, compensación y pronóstico de consumo en una planta siderúrgica}\\[0.6em]
+{\large Juan Pablo Gutiérrez Sánchez}\\[0.2em]
+Ingeniería Electrónica, Universidad del Norte \quad·\quad Noviembre de 2026\\[0.2em]
+\small Repositorio: \url{https://github.com/jpgsea-droid/eficiencia-energetica-acero}
+\end{center}
+
+\section*{Resumen}
+Se analizó un año de mediciones reales cada 15 minutos (35\,040 registros) de una planta siderúrgica para evaluar su desempeño energético bajo la regla colombiana de cobro de energía reactiva (Resolución CREG 015 de 2018). Aunque el factor de potencia anual es 0,90, la planta superaría el límite regulatorio en el 54,7\,\% de las horas y en los 365 días del año, porque la regla se evalúa hora por hora y no como promedio. El perfil horario indica una compensación reactiva conectada por horario: falta de noche y en el arranque, y sobra al mediodía y al final del turno. Se dimensionó una solución de 15\,kVAr fijos más un banco automático de 90\,kVAr en 6 pasos, con un retorno estimado de 4,6 años con el factor $M=1$ y de menos de dos años si los excesos se repiten. Además, un modelo de gradient boosting pronostica el consumo de la próxima hora con la mitad del error de un método de referencia y se usa para detectar horas anómalas. Los resultados se entregan en una herramienta de Excel para el ingeniero de planta y en un tablero de Power BI para la jefatura de mantenimiento.
+
+\section{Problema y motivación}
+En una planta industrial, los motores y transformadores consumen potencia reactiva para magnetizarse. Esa energía no produce trabajo, pero ocupa capacidad de cables y transformadores, aumenta las pérdidas por calor (proporcionales al cuadrado de la corriente) y se cobra cuando supera los límites regulatorios. En Colombia, la Resolución CREG 015 de 2018 cobra la energía reactiva inductiva que exceda el 50\,\% de la energía activa en cada periodo horario, penaliza la inyección de reactiva capacitiva y aplica un factor multiplicador $M$ que crece cuando los excesos se repiten en más de 10 días de un mismo mes. El objetivo del proyecto es responder, con datos, tres preguntas de mantenimiento y eficiencia energética: cuánto y cuándo incumple la planta, qué compensación necesita y cuánto cuesta corregirlo; y complementar el diagnóstico con un pronóstico de corto plazo que permita anticipar la demanda y detectar comportamientos anómalos.
+
+\section{Datos y limitaciones}
+Se usó el conjunto \emph{Steel Industry Energy Consumption} del repositorio UCI (n.º 851), con mediciones de 2018 de la empresa DAEWOO Steel (Gwangyang, Corea del Sur): energía activa (kWh), reactiva inductiva y capacitiva (kVArh), factor de potencia, CO$_2$ y el periodo tarifario. El conjunto está completo (35\,040 registros, sin valores faltantes). Limitaciones relevantes:
+\begin{itemize}
+\item El factor de potencia y el CO$_2$ son derivados del consumo (correlación de 0,988 entre CO$_2$ y kWh; el factor de potencia coincide exactamente con $P/\sqrt{P^2+Q^2}$). Por eso no se usaron para predecir el consumo.
+\item La reactiva es neta: ya incluye el efecto de la compensación existente, cuyo tamaño se desconoce.
+\item El ``tipo de carga'' del conjunto es un calendario tarifario de la empresa eléctrica, no una medición de la carga.
+\item No hay datos de producción ni de clima, que son los que más explican el consumo de una acería, y solo se dispone de un año.
+\item Los costos usan como referencia el pliego de Air-e de agosto de 2026 (nivel de tensión 2): tarifa industrial de 909,95\,\$/kWh y cargo de distribución $D=77{,}22$\,\$/kWh. El costo de la compensación es un valor de trabajo y se trató con análisis de sensibilidad.
+\end{itemize}
+
+\section{Metodología}
+\begin{enumerate}
+\item \textbf{Exploración y limpieza} en Python (pandas): verificación de coherencia, perfiles por hora, día y mes, y agregación a periodos horarios (8760 horas), que es la unidad de evaluación de la CREG.
+\item \textbf{Regla CREG por hora:} exceso $=\max(0,\ Q_{ind}-0{,}5\,P)$ y detección de horas con inyección capacitiva ($Q_{cap}>Q_{ind}$).
+\item \textbf{Dimensionamiento:} con el perfil del día laborable típico (mediana por hora) se calculó la reactiva admisible para un factor de potencia objetivo de 0,95, $Q_{obj}=P\tan(\arccos 0{,}95)$, la compensación faltante y la sobrante en cada hora.
+\item \textbf{Pronóstico:} modelo de gradient boosting (scikit-learn) con variables de calendario (hora, día de la semana, día de tarifa reducida) y de historia reciente (consumo de la hora anterior, del día anterior y de la semana anterior). Se entrenó con enero a septiembre y se evaluó con octubre a diciembre, comparándolo con tres referencias simples. Para el análisis histórico de anomalías se obtuvieron predicciones fuera de muestra para todo el año dejando un mes fuera en cada ronda.
+\item \textbf{Anomalías:} una hora es anómala si el consumo real se aleja del pronóstico más de tres veces el error absoluto medio del modelo.
+\item \textbf{Herramientas:} Excel (Power Query, fórmulas y análisis de hipótesis) y Power BI (modelo de datos, tabla calendario y medidas DAX), validando que Excel reproduce exactamente los cálculos de Python.
+\end{enumerate}
+
+\section{Resultados del diagnóstico}
+La planta consumió 960\,MWh de energía activa y 457\,MVArh de reactiva inductiva (47,6\,\% de la activa). El factor de potencia anual es 0,90, un valor que en una factura mensual parecería aceptable. Sin embargo, evaluada hora por hora, la planta superaría el límite de la CREG en 4793 horas (54,7\,\%), en los 365 días del año y en los 12 meses, por lo que activaría el factor $M$ todos los meses. La reactiva en exceso suma 73,2\,MVArh al año y hay 2147 horas con inyección capacitiva.
+
+\figura{figuras/perfil_horario.png}{0.95}{Perfil horario: consumo medio por hora (laborables y fin de semana) y factor de potencia mediano.}
+
+El perfil del día laborable explica el problema (Tabla~\ref{tab:franjas}): el exceso se concentra en la noche, cuando quedan equipos y transformadores energizados casi en vacío, y en el arranque de las 8\,h; mientras que al mediodía y al final del turno la compensación sigue conectada aunque la carga cae, e inyecta reactiva capacitiva. El patrón es consistente con una compensación conectada por horario y no por la reactiva medida.
+
+\begin{table}[htbp]\centering\small
+\caption{Diagnóstico por franja horaria del día laborable típico (medianas).}\label{tab:franjas}
+\begin{tabular}{@{}llp{6.2cm}@{}}\toprule
+Franja & Condición & Consecuencia según la CREG \\\midrule
+23--7\,h & $P\approx13$\,kW, $Q\approx19$\,kVAr & Exceso inductivo casi todas las noches \\
+8\,h & $P=170$\,kW, $Q=146$\,kVAr & Exceso inductivo el 99,6\,\% de los días \\
+9--20\,h & Compensación conectada, al límite & Exceso frecuente a las 11\,h \\
+12\,h y 21--22\,h & Cae la carga, queda la compensación & Inyección capacitiva (77\,\% y 90\,\% de los días) \\\bottomrule
+\end{tabular}
+\end{table}
+
+\figura{figuras/exceso_creg_hora.png}{0.8}{Reactiva en exceso según la CREG por hora del día (todo el año).}
+
+\section{Solución propuesta y evaluación económica}
+\begin{itemize}
+\item \textbf{Compensación fija de 15\,kVAr} para la reactiva nocturna, verificada para no sobrecompensar en ninguna hora de la noche.
+\item \textbf{Banco automático de 90\,kVAr en 6 pasos de 15\,kVAr}, con regulador de reactiva, para cubrir el arranque (hasta 90,5\,kVAr faltantes a las 8\,h).
+\item \textbf{Control de la compensación existente} por el mismo regulador, para desconectar al menos 66\,kVAr cuando la carga cae.
+\item \textbf{Medida operativa sin costo:} revisar la secuencia de arranque para no energizar equipos antes de tiempo.
+\end{itemize}
+Con el cargo de distribución de referencia, el cobro mínimo anual por reactiva ($M=1$) es de unos 5,65 millones de pesos. Con un costo de trabajo de 250\,000\,\$/kVAr instalado, la inversión de 105\,kVAr es de 26,25 millones y el retorno simple es de 4,6 años. Como el costo real requiere cotización, se evaluó la sensibilidad (Tabla~\ref{tab:sens}): el retorno baja a 2,3 años con $M=2$ y a menos de medio año con $M=12$. La conclusión no depende del precio exacto: la inversión es más rentable cuanto antes se haga, porque cada mes con excesos repetidos encarece el problema.
+
+\begin{table}[htbp]\centering\small
+\caption{Retorno simple (años) según el costo instalado por kVAr y el factor $M$.}\label{tab:sens}
+\begin{tabular}{@{}lccccc@{}}\toprule
+$M$ \textbackslash\ \$/kVAr & 150\,000 & 200\,000 & 250\,000 & 350\,000 & 450\,000 \\\midrule
+1 & 2,8 & 3,7 & 4,6 & 6,5 & 8,4 \\
+2 & 1,4 & 1,9 & 2,3 & 3,3 & 4,2 \\
+4 & 0,7 & 0,9 & 1,2 & 1,6 & 2,1 \\
+12 & 0,2 & 0,3 & 0,4 & 0,5 & 0,7 \\\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Modelo de pronóstico y detección de anomalías}
+El modelo de aprendizaje automático solo se justifica si supera a métodos simples, por lo que se comparó contra tres referencias (Tabla~\ref{tab:modelo}). Para la próxima hora, el gradient boosting reduce el error absoluto medio de 39,9 a 19,4\,kWh, porque combina el calendario con el estado operativo reciente (turnos extra, paradas o arranques retrasados), una relación no lineal que un perfil fijo no captura. Para el día siguiente no supera al perfil por hora y tipo de jornada, por lo que la planeación diaria usa el perfil. Con validación dejando un mes fuera, el error en todo el año es de 21,1\,kWh (CV(RMSE) de 37,2\,\% y sesgo de $-0{,}7$\,\%), estable entre meses. El CV(RMSE) está por encima del 30\,\% que la guía ASHRAE 14 usa como referencia para líneas base horarias; la principal causa es la ausencia de datos de producción.
+
+\begin{table}[htbp]\centering\small
+\caption{Error de pronóstico en octubre--diciembre (periodo no visto en el entrenamiento).}\label{tab:modelo}
+\begin{tabular}{@{}lccc@{}}\toprule
+Modelo & MAE (kWh) & CV(RMSE) & Sesgo \\\midrule
+Referencia: hora anterior & 39,9 & 73,2\,\% & 0,0\,\% \\
+\textbf{Gradient boosting, próxima hora} & \textbf{19,4} & \textbf{36,7\,\%} & $-0{,}6$\,\% \\
+Referencia: semana anterior & 48,3 & 86,2\,\% & $-0{,}1$\,\% \\
+Referencia: perfil por hora y jornada & 33,7 & 54,9\,\% & 6,0\,\% \\
+Gradient boosting, día siguiente & 34,8 & 58,5\,\% & 2,4\,\% \\\bottomrule
+\end{tabular}
+\end{table}
+
+\figura{figuras/pronostico_semana.png}{0.95}{Consumo real frente al pronóstico de la próxima hora en una semana de octubre.}
+
+Con un umbral de $\pm63$\,kWh (tres veces el error medio) se marcaron 928 horas anómalas: 550 de consumo alto y 378 de consumo bajo. Las de consumo alto suman 57,7\,MWh por encima de lo esperado (6,1\,\% del año), que debe leerse como límite superior y no como ahorro, porque parte corresponde a arranques que el modelo detecta con una hora de retraso. Enero concentra la mayor cantidad de anomalías y también el mayor consumo del año, un caso que conviene investigar en planta. Las anomalías de consumo bajo (posibles paradas) son las de mayor interés para mantenimiento.
+
+\figura{figuras/anomalias_mes.png}{0.75}{Horas anómalas por mes según el tipo.}
+
+\section{Herramienta en Excel}
+La herramienta permite que cualquier planta cargue su consumo horario y obtenga el diagnóstico sin programar. Incluye parámetros con nombres definidos y validación de datos; importación automatizada con Power Query; la regla CREG aplicada a las 8760 horas con referencias estructuradas; indicadores con \texttt{SUMAR.SI.CONJUNTO}, \texttt{FILTRAR}, \texttt{UNICOS} y \texttt{SUMAPRODUCTO}; el dimensionamiento con \texttt{BUSCARX} sobre un catálogo de módulos comerciales; una tabla de datos de dos variables para la sensibilidad del retorno; la planeación del día siguiente con búsqueda en dos direcciones y gráfico de título dinámico; y tablas dinámicas con segmentaciones y escala de tiempo para las anomalías. Una hoja de controles verifica que Excel y Python coinciden (cero filas con diferencia).
+
+\figura{capturas/excel_diagnostico.png}{0.9}{Hoja de diagnóstico de la herramienta en Excel.}
+\figura{capturas/excel_dimensionamiento.png}{0.6}{Dimensionamiento de la compensación.}
+
+\section{Tablero en Power BI}
+El tablero integra las tablas de 15 minutos, horaria y de pronóstico en un modelo de datos con tabla calendario y medidas DAX (energía, factor de potencia, horas y días con exceso, costo de la reactiva con el factor $M$ como parámetro y horas anómalas con umbral ajustable). Sus páginas resumen el estado energético, el cumplimiento de la CREG, las anomalías y el desempeño del modelo.
+
+\figura{capturas/pbi_resumen.png}{0.95}{Página de resumen ejecutivo del tablero.}
+\figura{capturas/pbi_anomalias.png}{0.95}{Página de anomalías del modelo de pronóstico.}
+
+\section{Conclusiones}
+\begin{itemize}
+\item El factor de potencia anual (0,90) oculta el problema: evaluada hora por hora, la planta incumpliría la regla de la CREG en más de la mitad de las horas y todos los días.
+\item El perfil horario permite pasar de ``instalar condensadores'' a un diagnóstico preciso: la compensación está programada por horario; falta de noche y en el arranque y sobra cuando la carga cae.
+\item Una compensación fija de 15\,kVAr más un banco automático de 90\,kVAr resuelve ambos casos, con un retorno que mejora cuanto más se repiten los excesos.
+\item El aprendizaje automático aporta valor donde supera a lo simple (pronóstico de la próxima hora y anomalías) y se reemplaza por un perfil donde rinde igual (día siguiente).
+\end{itemize}
+
+\section{Trabajo futuro}
+Validar el dimensionamiento con un analizador de redes y medición de armónicos; incorporar datos de producción y clima para construir una línea base energética según ISO 50001; obtener cotizaciones reales; y conectar el tablero a mediciones en línea para generar alertas automáticas.
+
+\begin{thebibliography}{9}\small
+\bibitem{uci} V.~E. Sathishkumar, C. Shin y Y. Cho, \emph{Steel Industry Energy Consumption} [conjunto de datos], UCI Machine Learning Repository, 2021. \url{https://archive.ics.uci.edu/dataset/851}.
+\bibitem{creg} Comisión de Regulación de Energía y Gas (CREG), \emph{Resolución CREG 015 de 2018}, Bogotá, 2018.
+\bibitem{aire} Air-e S.A.S. E.S.P. Intervenida, \emph{Tarifas: costo unitario agosto de 2026}, 2026.
+\bibitem{iso} ISO 50001:2018, \emph{Sistemas de gestión de la energía}.
+\bibitem{ashrae} ASHRAE, \emph{Guideline 14-2014: Measurement of Energy, Demand, and Water Savings}, 2014.
+\bibitem{sklearn} F. Pedregosa et al., ``Scikit-learn: Machine Learning in Python'', \emph{Journal of Machine Learning Research}, vol. 12, pp. 2825--2830, 2011.
+\end{thebibliography}
+
+\end{document}
